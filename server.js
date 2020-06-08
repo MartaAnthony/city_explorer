@@ -10,10 +10,10 @@ app.use(cors());
 
 const PORT = process.env.PORT || 3001;
 
-// // app.get('/', (request, response) => {
-// //   console.log('hello out there');
-// //   response.status(200).send('I like pizza');
-// // });
+app.get('/', (request, response) => {
+  console.log('hello out there');
+  response.status(200).send('I like pizza');
+});
 
 // // app.get('/bananas', (request, response) => {
 // //   console.log('it is Monday');
