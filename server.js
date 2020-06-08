@@ -19,23 +19,26 @@ app.get('/', (request, response) => {
 
 app.get('/location', (request, response) => {
 
-  console.log(request.query.city);
-  let search_query = request.query.city;
+  try{
 
-  let geoData = require('./data/location.json');
+    console.log(request.query.city);
+    let search_query = request.query.city;
 
-  let returnObj = new Location(search_query, geoData[0]);
+    let geoData = require('./data/location.json');
 
-  console.log(returnObj);
+    let returnObj = new Location(search_query, geoData[0]);
 
-  response.status(200).send(returnObj);
+    console.log(returnObj);
 
-  //   } catch(err){
-  //     console.log('ERROR', err);
-  //     response.status(500).send('sorry, we messed up');
-  //   }
+    response.status(200).send(returnObj);
+
+  } catch(err){
+    console.log('ERROR', err);
+    response.status(500).send('sorry, something went wrong');
+  }
 
 })
+
 
 function Location(searchQuery, obj){
   this.search_query = searchQuery;
@@ -44,26 +47,35 @@ function Location(searchQuery, obj){
   this.longitude = obj.lon;
 }
 
+
 //get weather
 
 app.get('/weather', (request, response) => {
 
-  let weatherArr = [];
+  try{
 
-  let weatherData = require('./data/weather.json');
-  weatherData.data.forEach(value => {
-    let weather = new Weather(value);
-    weatherArr.push(weather);
-  })
+    let weatherArr = [];
 
-  response.status(200).send(weatherArr);
+    let weatherData = require('./data/weather.json');
+    weatherData.data.forEach(value => {
+      let weather = new Weather(value);
+      weatherArr.push(weather);
+    })
 
+    response.status(200).send(weatherArr);
+
+  }catch(err){
+    console.log('ERROR', err);
+    response,status(500).send('oopsy daisy, something went wrong');
+  }
 })
 
 function Weather(obj){
   this.forecast = obj.weather.description;
   this.time = obj.datetime;
 }
+
+
 
 // app.get('*', (request, response) => {
 //   response.status(404).send('sorry, this route does not exist');
