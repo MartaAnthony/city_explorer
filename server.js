@@ -15,6 +15,8 @@ app.get('/', (request, response) => {
   response.status(200).send('I like WA');
 });
 
+//get location
+
 app.get('/location', (request, response) => {
 
   console.log(request.query.city);
@@ -40,6 +42,27 @@ function Location(searchQuery, obj){
   this.formatted_query = obj.display_name;
   this.latitude = obj.lat;
   this.longitude = obj.lon;
+}
+
+//get weather
+
+app.get('/weather', (request, response) => {
+
+  let weatherArr = [];
+
+  let weatherData = require('./data/weather.json');
+  weatherData.data.forEach(value => {
+    let weather = new Weather(value);
+    weatherArr.push(weather);
+  })
+
+  response.status(200).send(weatherArr);
+
+})
+
+function Weather(obj){
+  this.forecast = obj.weather.description;
+  this.time = obj.datetime;
 }
 
 // app.get('*', (request, response) => {
