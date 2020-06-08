@@ -63,6 +63,6 @@ app.get('/', (request, response) => {
 // })
 
 // // turn on the lights - move into the house - start the server
-// app.listen(PORT, () => {
-//   console.log(`listening on ${PORT}`);
-// })
+app.listen(PORT, () => {
+  console.log(`listening on ${PORT}`);
+})
