@@ -20,7 +20,7 @@ app.get('/location', (request, response) => {
   console.log(request.query.city);
   let search_query = request.query.city;
 
-  let geoData = require('data/location.json');
+  let geoData = require('./data/location.json');
 
   let returnObj = new Location(search_query, geoData[0]);
 
