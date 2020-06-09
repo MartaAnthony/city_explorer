@@ -3,6 +3,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const superagent = require('superagent');
 const app = express();
 
 app.use(cors());
@@ -15,35 +16,30 @@ app.get('/', (request, response) => {
 });
 
 //get location
+try {
 
-app.get('/location', (request, response) => {
+  app.get('/location', (request, response) => {
+    let city = request.query.city;
 
-  try{
+    let url = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEOCODE_API_KEY}&q=${city}&format=json`;
 
-    console.log(request.query.city);
-    let search_query = request.query.city;
+    superagent.get(url)
+      .then(resultsFromSuperAgent => {
+        let finalObj = new Location(city, resultsFromSuperAgent.body[0]);
+        response.status(200).send(finalObj);
+      }).catch(err => console.log(err))
+  })
 
-    let geoData = require('./data/location.json');
-
-    let returnObj = new Location(search_query, geoData[0]);
-
-    console.log(returnObj);
-
-    response.status(200).send(returnObj);
-
-  } catch(err){
-    console.log('ERROR', err);
-    response.status(500).send('sorry, something went wrong');
+  // eslint-disable-next-line no-inner-declarations
+  function Location(searchQuery, obj){
+    this.search_query = searchQuery;
+    this.formatted_query = obj.display_name;
+    this.latitude = obj.lat;
+    this.longitude = obj.lon;
   }
-
-})
-
-
-function Location(searchQuery, obj){
-  this.search_query = searchQuery;
-  this.formatted_query = obj.display_name;
-  this.latitude = obj.lat;
-  this.longitude = obj.lon;
+}catch(err){
+  console.log('ERROR', err);
+  response,status(500).send('oopsy daisy, something went wrong');
 }
 
 
