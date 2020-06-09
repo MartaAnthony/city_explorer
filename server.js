@@ -1,11 +1,10 @@
 'use strict'
 
+require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const app = express();
 
-require('dotenv').config();
-
-const cors = require('cors');
 app.use(cors());
 
 const PORT = process.env.PORT || 3001;
@@ -26,7 +25,7 @@ app.get('/location', (request, response) => {
 
     let geoData = require('./data/location.json');
 
-    let returnObj = new Location(search_query, geoData[1]);
+    let returnObj = new Location(search_query, geoData[0]);
 
     console.log(returnObj);
 
@@ -54,13 +53,8 @@ app.get('/weather', (request, response) => {
 
   try{
 
-    let weatherArr = [];
-
     let weatherData = require('./data/weather.json');
-    weatherData.data.forEach(value => {
-      let weather = new Weather(value);
-      weatherArr.push(weather);
-    })
+    let weatherArr = weatherData.data.map(value => new Weather(value));
 
     response.status(200).send(weatherArr);
 
