@@ -26,7 +26,7 @@ app.get('/location', (request, response) => {
 
     let geoData = require('./data/location.json');
 
-    let returnObj = new Location(search_query, geoData[0]);
+    let returnObj = new Location(search_query, geoData[1]);
 
     console.log(returnObj);
 
@@ -77,9 +77,9 @@ function Weather(obj){
 
 
 
-// app.get('*', (request, response) => {
-//   response.status(404).send('sorry, this route does not exist');
-// })
+app.get('*', (request, response) => {
+  response.status(404).send('sorry, this route does not exist');
+})
 
 // // turn on the lights - move into the house - start the server
 app.listen(PORT, () => {
