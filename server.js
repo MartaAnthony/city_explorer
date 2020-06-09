@@ -49,6 +49,7 @@ app.get('/weather', (request, response) => {
   let search_query = request.query.search_query;
   console.log('stuff I got from the front end on the weather route', search_query);
 
+
   let url = `https://api.weatherbit.io/v2.0/forecast/daily?city=${search_query}&key=${process.env.WEATHER_API_KEY}&days=7`;
 
   superagent.get(url)
