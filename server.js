@@ -39,34 +39,31 @@ try {
   }
 }catch(err){
   console.log('ERROR', err);
-  response,status(500).send('oopsy daisy, something went wrong');
+  response.status(500).send('oopsy daisy, something went wrong');
 }
 
 
 //get weather
 
 app.get('/weather', (request, response) => {
+  let search_query = request.query.search_query;
+  console.log('stuff I got from the front end on the weather route', search_query);
 
-  try{
-    
-    let search_query = request.query.search_query;
 
-    let weatherData = require('./data/weather.json');
-    let weatherArr = weatherData.data.map(value => new Weather(value));
+  let url = `https://api.weatherbit.io/v2.0/forecast/daily?city=${search_query}&key=${process.env.WEATHER_API_KEY}&days=7`;
 
-    response.status(200).send(weatherArr);
-
-  }catch(err){
-    console.log('ERROR', err);
-    response,status(500).send('oopsy daisy, something went wrong');
-  }
+  superagent.get(url)
+    .then(weatherData => {
+      console.log(weatherData.body.data);
+      let weatherArr = weatherData.body.data.map(value => new Weather(value));
+      response.status(200).send(weatherArr);
+    }).catch(err => console.log(err));
 })
 
 function Weather(obj){
   this.forecast = obj.weather.description;
   this.time = obj.datetime;
 }
-
 
 
 app.get('*', (request, response) => {
