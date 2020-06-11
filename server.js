@@ -4,9 +4,13 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const superagent = require('superagent');
+const pg = require('pg');
 const app = express();
 
 app.use(cors());
+
+const client = new pg.Client(process.env.DATABASE_URL);
+client.on('error', err => console.error(err));
 
 const PORT = process.env.PORT || 3001;
 
@@ -16,31 +20,58 @@ app.get('/', (request, response) => {
 });
 
 //get location
-try {
 
-  app.get('/location', (request, response) => {
+
+app.get('/location', (request, response) => {
+  try {
+
     let city = request.query.city;
-
     let url = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEOCODE_API_KEY}&q=${city}&format=json`;
 
-    superagent.get(url)
-      .then(resultsFromSuperAgent => {
-        let finalObj = new Location(city, resultsFromSuperAgent.body[0]);
-        response.status(200).send(finalObj);
-      }).catch(err => console.log(err))
-  })
+    //check if the location is already in database
+    let sqlQuery = 'SELECT * FROM location WHERE search_query = $1;'
+    let safeValue = [city];
 
-  // eslint-disable-next-line no-inner-declarations
-  function Location(searchQuery, obj){
-    this.search_query = searchQuery;
-    this.formatted_query = obj.display_name;
-    this.latitude = obj.lat;
-    this.longitude = obj.lon;
+    client.query(sqlQuery, safeValue)
+      .then(sqlResults => {
+        console.log(sqlResults);
+        // if in database, send back the results
+        if (sqlResults.rowCount) {
+          console.log('getting info from the database');
+          response.status(200).send(sqlResults.rows[0]);
+          //if not in database, fetch results from the API
+        } else {
+          superagent.get(url)
+            .then(resultsFromSuperAgent => {
+              let finalObj = new Location(city, resultsFromSuperAgent.body[0]);
+              console.log('getting info from API');
+
+              //add results from the API to the database
+              let sql = 'INSERT INTO location(search_query, formatted_query, longitude, latitude) VALUES ($1, $2, $3, $4)';
+              let safeValues = [city, finalObj.formatted_query, finalObj.longitude, finalObj.latitude];
+              client.query(sql, safeValues)
+
+              response.status(200).send(finalObj);
+            })
+        }})
+
   }
-}catch(err){
-  console.log('ERROR', err);
-  response.status(500).send('oopsy daisy, something went wrong');
+  catch(err){
+    console.log('ERROR', err);
+    response.status(500).send('oopsy daisy, something went wrong');
+  }
+
+})
+
+function Location(searchQuery, obj){
+  this.search_query = searchQuery;
+  this.formatted_query = obj.display_name;
+  this.latitude = obj.lat;
+  this.longitude = obj.lon;
 }
+
+
+
 
 
 //get weather
@@ -102,7 +133,10 @@ app.get('*', (request, response) => {
 })
 
 // // turn on the lights - move into the house - start the server
-app.listen(PORT, () => {
-  console.log(`listening on ${PORT}`);
-});
+client.connect()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`listening on ${PORT}`);
+    });
+  })
 
