@@ -1,3 +1,4 @@
+/* eslint-disable no-trailing-spaces */
 'use strict'
 
 require('dotenv').config();
@@ -70,15 +71,74 @@ function Location(searchQuery, obj){
   this.longitude = obj.lon;
 }
 
+//get movies
+
+app.get('/movies', (request, response) => {
+  let search_query = request.query.search_query;
+  console.log('stuff I got from the front end on the movies route', search_query);
+
+  let url = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.MOVIE_API_KEY}&query=${search_query}`;
+
+  superagent.get(url)
+    .then(moviesData => {
+      console.log(moviesData);
+      let moviesArr = moviesData.body.results.map(value => new Movie(value));
+      response.status(200).send(moviesArr);
+    }).catch(err => console.log(err));
+})
+
+function Movie(obj){
+  this.title = obj.title;
+  this.overview = obj.overview;
+  this.average_votes = obj.vote_average;
+  this.total_votes = obj.vote_count;
+  this.image_url = `https://image.tmdb.org/t/p/w500${obj.poster_path}`;
+  this.popularity = obj.popularity;
+  this.released_on = obj.release_date;
+}
 
 
+app.get('/yelp', (request, response) => {
+  let search_query = request.query.search_query;
+  console.log('stuff I got from the front end on the yelp route', search_query);
+
+  let url = 'https://api.yelp.com/v3/businesses/search';
+
+  const yelpQuery = request.query.page;
+  const numPerPage = 5; 
+  const start = (yelpQuery - 1) * numPerPage;
+
+  const queryParams = {
+    latitude: request.query.latitude,
+    start: start,
+    count: numPerPage,
+    longitude: request.query.longitude
+  }
+
+  superagent.get(url)
+  .set('Authorization', `Bearer ${process.env.YELP_API_KEY}`)
+  .query(queryParams)
+    .then(yelpData => {
+      console.log(yelpData.body);
+      let yelpArr = yelpData.body.businesses.map(value => new Restaurant(value));
+      response.status(200).send(yelpArr);
+    }).catch(err => console.log(err));
+})
+
+function Restaurant(obj){
+  this.name = obj.name;
+  this.image_url = obj.image_url;
+  this.price = obj.price;
+  this.rating = obj.rating;
+  this.url = obj.url;
+}
 
 
 //get weather
 
 app.get('/weather', (request, response) => {
   let search_query = request.query.search_query;
-  console.log('stuff I got from the front end on the weather route', search_query);
+  // console.log('stuff I got from the front end on the weather route', search_query);
 
 
   let url = `https://api.weatherbit.io/v2.0/forecast/daily?city=${search_query}&key=${process.env.WEATHER_API_KEY}&days=7`;
@@ -102,13 +162,13 @@ app.get('/trails', (request, response) => {
   let search_query = request.query.search_query;
   let lat = request.query.latitude;
   let lon = request.query.longitude;
-  console.log('stuff I got from the front end on the trails route', search_query);
+  // console.log('stuff I got from the front end on the trails route', search_query);
 
   let url = `https://www.hikingproject.com/data/get-trails?lat=${lat}&lon=${lon}&key=${process.env.TRAIL_API_KEY}`;
 
   superagent.get(url)
     .then(trailsData => {
-      console.log(trailsData.body.trails);
+      // console.log(trailsData.body.trails);
       let trailArr = trailsData.body.trails.map(value => new Trail(value));
       response.status(200).send(trailArr);
     }).catch(err => console.log(err));
@@ -139,4 +199,3 @@ client.connect()
       console.log(`listening on ${PORT}`);
     });
   })
-
